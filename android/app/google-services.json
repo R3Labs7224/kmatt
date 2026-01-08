@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "459846516933",
+    "firebase_url": "https://k-matt-default-rtdb.firebaseio.com",
+    "project_id": "k-matt",
+    "storage_bucket": "k-matt.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:459846516933:android:1f43cfdd3db105bd1ef0ac",
+        "android_client_info": {
+          "package_name": "com.kmatt.kmattDriver"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBlqpJHAgl3lODa0vQl5azVnEQDEPrV6ew"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:459846516933:android:6da1e44969d25bad1ef0ac",
+        "android_client_info": {
+          "package_name": "com.kmatt.kmattUser"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBlqpJHAgl3lODa0vQl5azVnEQDEPrV6ew"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
