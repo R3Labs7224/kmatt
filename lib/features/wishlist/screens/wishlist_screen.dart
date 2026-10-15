@@ -14,6 +14,9 @@ import 'package:flutter_grocery/common/widgets/no_data_widget.dart';
 import 'package:flutter_grocery/common/widgets/not_login_widget.dart';
 import 'package:flutter_grocery/common/widgets/product_widget.dart';
 import 'package:flutter_grocery/common/widgets/web_app_bar_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_header_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_category_drawer.dart';
+import 'package:flutter_grocery/common/widgets/web/web_sidebar_menu.dart';
 import 'package:provider/provider.dart';
 
 class WishListScreen extends StatefulWidget {
@@ -34,7 +37,13 @@ class _WishListScreenState extends State<WishListScreen> {
   Widget build(BuildContext context) {
 
     return Scaffold(
-      appBar: ResponsiveHelper.isMobilePhone()? null: (ResponsiveHelper.isDesktop(context)? const PreferredSize(preferredSize: Size.fromHeight(120), child: WebAppBarWidget()) : const AppBarBaseWidget()) as PreferredSizeWidget?,
+      appBar: ResponsiveHelper.isMobilePhone()
+          ? null
+          : (ResponsiveHelper.isDesktop(context)
+              ? const WebHeaderWidget()
+              : const AppBarBaseWidget()) as PreferredSizeWidget?,
+      drawer: ResponsiveHelper.isDesktop(context) ? const WebCategoryDrawer() : null,
+      endDrawer: ResponsiveHelper.isDesktop(context) ? const WebSidebarMenu() : null,
       body: _isLoggedIn ? Consumer<WishListProvider>(
         builder: (context, wishlistProvider, child) {
           if(wishlistProvider.isLoading) {

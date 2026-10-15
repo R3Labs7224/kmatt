@@ -25,6 +25,9 @@ import 'package:flutter_grocery/common/widgets/custom_text_field_widget.dart';
 import 'package:flutter_grocery/common/widgets/footer_web_widget.dart';
 import 'package:flutter_grocery/features/auth/screens/forgot_password_screen.dart';
 import 'package:flutter_grocery/common/widgets/web_app_bar_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_header_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_category_drawer.dart';
+import 'package:flutter_grocery/common/widgets/web/web_sidebar_menu.dart';
 import 'package:provider/provider.dart';
 
 import '../widgets/social_login_widget.dart';
@@ -75,7 +78,9 @@ class _LoginScreenState extends State<LoginScreen> {
           return const SendOtpScreen();
         }else{
           return CustomPopScopeWidget(child: Scaffold(
-            appBar: ResponsiveHelper.isDesktop(context)? const PreferredSize(preferredSize: Size.fromHeight(120), child: WebAppBarWidget()) : null,
+            appBar: ResponsiveHelper.isDesktop(context) ? const WebHeaderWidget() as PreferredSizeWidget : null,
+            drawer: ResponsiveHelper.isDesktop(context) ? const WebCategoryDrawer() : null,
+            endDrawer: ResponsiveHelper.isDesktop(context) ? const WebSidebarMenu() : null,
             body: SafeArea(child: CustomScrollView(slivers: [
 
               if(ResponsiveHelper.isDesktop(context)) const SliverToBoxAdapter(child: SizedBox(height: Dimensions.paddingSizeLarge)),
@@ -94,11 +99,31 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       Center(child: Padding(
                         padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
-                        child: Image.asset(
-                          Images.appLogo, height: ResponsiveHelper.isDesktop(context)
-                            ? MediaQuery.of(context).size.height * 0.15
-                            : MediaQuery.of(context).size.height / 4.5,
-                          fit: BoxFit.scaleDown,
+                        child: Consumer<SplashProvider>(
+                          builder: (context, splashProvider, _) {
+                            return splashProvider.configModel?.ecommerceLogo != null && splashProvider.baseUrls != null
+                                ? Image.network(
+                                    '${splashProvider.baseUrls!.ecommerceImageUrl}/${splashProvider.configModel!.ecommerceLogo!}',
+                                    height: ResponsiveHelper.isDesktop(context)
+                                        ? MediaQuery.of(context).size.height * 0.15
+                                        : MediaQuery.of(context).size.height / 4.5,
+                                    fit: BoxFit.scaleDown,
+                                    errorBuilder: (context, error, stackTrace) => Image.asset(
+                                      Images.appLogo,
+                                      height: ResponsiveHelper.isDesktop(context)
+                                          ? MediaQuery.of(context).size.height * 0.15
+                                          : MediaQuery.of(context).size.height / 4.5,
+                                      fit: BoxFit.scaleDown,
+                                    ),
+                                  )
+                                : Image.asset(
+                                    Images.appLogo,
+                                    height: ResponsiveHelper.isDesktop(context)
+                                        ? MediaQuery.of(context).size.height * 0.15
+                                        : MediaQuery.of(context).size.height / 4.5,
+                                    fit: BoxFit.scaleDown,
+                                  );
+                          },
                         ),
                       )),
                       const SizedBox(height: Dimensions.paddingSizeSmall),

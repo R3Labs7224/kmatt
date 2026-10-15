@@ -7,6 +7,9 @@ import 'package:flutter_grocery/common/widgets/custom_loader_widget.dart';
 import 'package:flutter_grocery/common/widgets/footer_web_widget.dart';
 import 'package:flutter_grocery/common/widgets/no_data_widget.dart';
 import 'package:flutter_grocery/common/widgets/web_app_bar_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_header_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_category_drawer.dart';
+import 'package:flutter_grocery/common/widgets/web/web_sidebar_menu.dart';
 import 'package:flutter_grocery/features/order/domain/models/order_model.dart';
 import 'package:flutter_grocery/features/order/domain/models/timeslote_model.dart';
 import 'package:flutter_grocery/features/order/providers/order_provider.dart';
@@ -110,17 +113,21 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         }
       },
       child: Scaffold(
-        appBar: (ResponsiveHelper.isDesktop(context) ? const PreferredSize(preferredSize: Size.fromHeight(120), child: WebAppBarWidget()): CustomAppBarWidget(
-          title: 'order_details'.tr,
-          onBackPressed: (){
-            if(!Navigator.canPop(context)){
-              Navigator.of(context).pushNamedAndRemoveUntil(RouteHelper.menu, (route) => false);
-              splashProvider.setPageIndex(0);
-            } else{
-              Navigator.pop(context);
-            }
-          },
-        )) as PreferredSizeWidget?,
+        appBar: (ResponsiveHelper.isDesktop(context)
+            ? const WebHeaderWidget()
+            : CustomAppBarWidget(
+                title: 'order_details'.tr,
+                onBackPressed: () {
+                  if (!Navigator.canPop(context)) {
+                    Navigator.of(context).pushNamedAndRemoveUntil(RouteHelper.menu, (route) => false);
+                    splashProvider.setPageIndex(0);
+                  } else {
+                    Navigator.pop(context);
+                  }
+                },
+              )) as PreferredSizeWidget?,
+        drawer: ResponsiveHelper.isDesktop(context) ? const WebCategoryDrawer() : null,
+        endDrawer: ResponsiveHelper.isDesktop(context) ? const WebSidebarMenu() : null,
         body: Consumer<OrderProvider>(builder: (context, orderProvider, _) {
           double deliveryCharge = OrderHelper.getDeliveryCharge(orderModel: orderProvider.trackModel);
           double itemsPrice = OrderHelper.getOrderDetailsValue(orderDetailsList: orderProvider.orderDetails, type: OrderValue.itemPrice);

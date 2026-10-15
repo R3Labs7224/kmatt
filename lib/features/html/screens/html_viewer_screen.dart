@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_grocery/common/enums/footer_type_enum.dart';
 import 'package:flutter_grocery/common/enums/html_type_enum.dart';
+import 'package:flutter_grocery/common/widgets/web/web_category_drawer.dart';
+import 'package:flutter_grocery/common/widgets/web/web_header_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_sidebar_menu.dart';
 import 'package:flutter_grocery/helper/responsive_helper.dart';
 import 'package:flutter_grocery/localization/app_localization.dart';
 import 'package:flutter_grocery/features/splash/providers/splash_provider.dart';
@@ -8,7 +11,6 @@ import 'package:flutter_grocery/utill/dimensions.dart';
 import 'package:flutter_grocery/utill/styles.dart';
 import 'package:flutter_grocery/common/widgets/app_bar_base_widget.dart';
 import 'package:flutter_grocery/common/widgets/footer_web_widget.dart';
-import 'package:flutter_grocery/common/widgets/web_app_bar_widget.dart';
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -61,10 +63,12 @@ class HtmlViewerScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: (ResponsiveHelper.isDesktop(context)
-          ? const PreferredSize(preferredSize: Size.fromHeight(120), child: WebAppBarWidget())
+          ? const WebHeaderWidget()
           : ResponsiveHelper.isMobilePhone() ? null : AppBarBaseWidget(
         title: appBarText.tr,
       )) as PreferredSizeWidget?,
+      drawer: ResponsiveHelper.isDesktop(context) ? const WebCategoryDrawer() : null,
+      endDrawer: ResponsiveHelper.isDesktop(context) ? const WebSidebarMenu() : null,
       body: SingleChildScrollView(child: Column(children: [
         ConstrainedBox(
           constraints: BoxConstraints(minHeight: ResponsiveHelper.isDesktop(context)

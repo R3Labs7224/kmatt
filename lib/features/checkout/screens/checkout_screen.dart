@@ -15,6 +15,9 @@ import 'package:flutter_grocery/common/widgets/custom_single_child_list_widget.d
 import 'package:flutter_grocery/common/widgets/footer_web_widget.dart';
 import 'package:flutter_grocery/common/widgets/not_login_widget.dart';
 import 'package:flutter_grocery/common/widgets/web_app_bar_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_header_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_category_drawer.dart';
+import 'package:flutter_grocery/common/widgets/web/web_sidebar_menu.dart';
 import 'package:flutter_grocery/features/address/domain/models/address_model.dart';
 import 'package:flutter_grocery/features/address/providers/location_provider.dart';
 import 'package:flutter_grocery/features/auth/providers/auth_provider.dart';
@@ -98,8 +101,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     return Scaffold(
       key: _scaffoldKey,
+      appBar: (ResponsiveHelper.isDesktop(context)
+          ? const WebHeaderWidget()
+          : CustomAppBarWidget(title: getTranslated('checkout', context))) as PreferredSizeWidget?,
+      drawer: ResponsiveHelper.isDesktop(context) ? const WebCategoryDrawer() : null,
+      endDrawer: ResponsiveHelper.isDesktop(context) ? const WebSidebarMenu() : null,
       resizeToAvoidBottomInset: true,
-      appBar: (ResponsiveHelper.isDesktop(context)? const PreferredSize(preferredSize: Size.fromHeight(120), child: WebAppBarWidget())  : CustomAppBarWidget(title: getTranslated('checkout', context))) as PreferredSizeWidget?,
       body: isRoute ? Column(children: [
 
         Expanded(child: CustomScrollView(controller: scrollController, slivers: [

@@ -16,7 +16,9 @@ import 'package:flutter_grocery/helper/custom_snackbar_helper.dart';
 import 'package:flutter_grocery/common/widgets/custom_text_field_widget.dart';
 import 'package:flutter_grocery/common/widgets/footer_web_widget.dart';
 import 'package:flutter_grocery/common/widgets/phone_number_field_widget.dart';
-import 'package:flutter_grocery/common/widgets/web_app_bar_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_header_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_category_drawer.dart';
+import 'package:flutter_grocery/common/widgets/web/web_sidebar_menu.dart';
 import 'package:flutter_grocery/features/order/widgets/track_order_web_widget.dart';
 import 'package:provider/provider.dart';
 
@@ -46,17 +48,18 @@ class _OrderSearchScreenState extends State<OrderSearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: ResponsiveHelper.isDesktop(context) ? const PreferredSize(
-        preferredSize: Size.fromHeight(100), child: WebAppBarWidget(),
-      ) : CustomAppBarWidget(
+      appBar: (ResponsiveHelper.isDesktop(context)
+          ? const WebHeaderWidget()
+          : CustomAppBarWidget(
         isBackButtonExist: !ResponsiveHelper.isMobile(),
         title: getTranslated('order_details', context),
         actionView: _TrackRefreshButtonView(
           orderIdTextController: orderIdTextController,
           phoneNumberTextController: phoneNumberTextController,
         ),
-      ) as PreferredSizeWidget,
-
+      )) as PreferredSizeWidget?,
+      drawer: ResponsiveHelper.isDesktop(context) ? const WebCategoryDrawer() : null,
+      endDrawer: ResponsiveHelper.isDesktop(context) ? const WebSidebarMenu() : null,
       body: CustomScrollView(slivers: [
 
         SliverToBoxAdapter(child: Container(

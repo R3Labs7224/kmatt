@@ -4,6 +4,10 @@ import 'package:flutter_grocery/common/enums/footer_type_enum.dart';
 import 'package:flutter_grocery/common/widgets/footer_web_widget.dart';
 import 'package:flutter_grocery/common/widgets/not_login_widget.dart';
 import 'package:flutter_grocery/common/widgets/web_app_bar_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/mobile_bottom_nav_bar.dart';
+import 'package:flutter_grocery/common/widgets/web/web_header_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_category_drawer.dart';
+import 'package:flutter_grocery/common/widgets/web/web_sidebar_menu.dart';
 import 'package:flutter_grocery/features/auth/providers/auth_provider.dart';
 import 'package:flutter_grocery/features/profile/providers/profile_provider.dart';
 import 'package:flutter_grocery/features/profile/widgets/profile_details_widget.dart';
@@ -41,20 +45,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final SplashProvider splashProvider = Provider.of<SplashProvider>(context, listen: false);
     return Scaffold(
-      appBar: ResponsiveHelper.isDesktop(context)? const PreferredSize(preferredSize: Size.fromHeight(120), child: WebAppBarWidget()): AppBar(
-        backgroundColor: Theme.of(context).cardColor,
-        leading: IconButton(
-            icon: Image.asset(Images.moreIcon, color: Theme.of(context).primaryColor),
-            onPressed: () {
-              splashProvider.setPageIndex(0);
-              Navigator.of(context).pop();
-            }),
-        title: Text(getTranslated('profile', context),
-            style: poppinsMedium.copyWith(
-              fontSize: Dimensions.fontSizeSmall,
-              color: Theme.of(context).textTheme.bodyLarge!.color,
-            )),
-      ),
+      appBar: ResponsiveHelper.isDesktop(context)
+          ? const WebHeaderWidget() as PreferredSizeWidget
+          : AppBar(
+              backgroundColor: Theme.of(context).cardColor,
+              leading: IconButton(
+                  icon: Image.asset(Images.moreIcon, color: Theme.of(context).primaryColor),
+                  onPressed: () {
+                    splashProvider.setPageIndex(0);
+                    Navigator.of(context).pop();
+                  }),
+              title: Text(getTranslated('profile', context),
+                  style: poppinsMedium.copyWith(
+                    fontSize: Dimensions.fontSizeSmall,
+                    color: Theme.of(context).textTheme.bodyLarge!.color,
+                  )),
+            ),
+      drawer: ResponsiveHelper.isDesktop(context) ? const WebCategoryDrawer() : null,
+      endDrawer: ResponsiveHelper.isDesktop(context) ? const WebSidebarMenu() : null,
+      bottomNavigationBar: const MobileBottomNavBar(currentIndex: 3),
       body: SafeArea(
         child: _isLoggedIn ? Consumer<ProfileProvider>(builder: (context, profileProvider, child) {
           return const Padding(

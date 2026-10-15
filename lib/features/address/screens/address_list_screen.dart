@@ -14,7 +14,9 @@ import 'package:flutter_grocery/common/widgets/footer_web_widget.dart';
 import 'package:flutter_grocery/common/widgets/no_data_widget.dart';
 import 'package:flutter_grocery/common/widgets/not_login_widget.dart';
 import 'package:flutter_grocery/features/address/widgets/adress_widget.dart';
-import 'package:flutter_grocery/common/widgets/web_app_bar_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_header_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_category_drawer.dart';
+import 'package:flutter_grocery/common/widgets/web/web_sidebar_menu.dart';
 import 'package:provider/provider.dart';
 import 'add_new_address_screen.dart';
 
@@ -45,8 +47,10 @@ class _AddressListScreenState extends State<AddressListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: ResponsiveHelper.isMobilePhone() ? null : (ResponsiveHelper.isDesktop(context)
-          ? const PreferredSize(preferredSize: Size.fromHeight(120), child: WebAppBarWidget())
+          ? const WebHeaderWidget()
           : const AppBarBaseWidget()) as PreferredSizeWidget?,
+      drawer: ResponsiveHelper.isDesktop(context) ? const WebCategoryDrawer() : null,
+      endDrawer: ResponsiveHelper.isDesktop(context) ? const WebSidebarMenu() : null,
 
       body: _isLoggedIn ? Consumer<LocationProvider>(
         builder: (context, locationProvider, child) {

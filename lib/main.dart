@@ -37,6 +37,8 @@ import 'package:flutter_grocery/features/wallet_and_loyalty/providers/wallet_pro
 import 'package:flutter_grocery/features/wishlist/providers/wishlist_provider.dart';
 import 'package:flutter_grocery/theme/dark_theme.dart';
 import 'package:flutter_grocery/theme/light_theme.dart';
+import 'package:flutter_grocery/theme/web_dark_theme.dart';
+import 'package:flutter_grocery/theme/web_light_theme.dart';
 import 'package:flutter_grocery/utill/app_constants.dart';
 import 'package:flutter_grocery/common/widgets/third_party_chat_widget.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -200,6 +202,20 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
+  /// Get the appropriate theme based on platform (web vs mobile) and theme mode (light vs dark)
+  /// Web uses the new red-themed design, mobile keeps the existing green/teal theme
+  ThemeData _getTheme(BuildContext context) {
+    final bool isDarkTheme = Provider.of<ThemeProvider>(context).darkTheme;
+
+    if (kIsWeb) {
+      // Web platform uses new red theme
+      return isDarkTheme ? webDark : webLight;
+    } else {
+      // Mobile platform uses existing green/teal theme (unchanged)
+      return isDarkTheme ? dark : light;
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -219,7 +235,7 @@ class _MyAppState extends State<MyApp> {
           onGenerateRoute: RouteHelper.router.generator,
           debugShowCheckedModeBanner: false,
           navigatorKey: navigatorKey,
-          theme: Provider.of<ThemeProvider>(context).darkTheme ? dark : light,
+          theme: _getTheme(context),
           locale: Provider.of<LocalizationProvider>(context).locale,
           localizationsDelegates: const [
             AppLocalization.delegate, GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate,

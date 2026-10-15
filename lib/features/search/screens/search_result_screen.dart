@@ -11,7 +11,10 @@ import 'package:flutter_grocery/utill/styles.dart';
 import 'package:flutter_grocery/common/widgets/footer_web_widget.dart';
 import 'package:flutter_grocery/common/widgets/no_data_widget.dart';
 import 'package:flutter_grocery/common/widgets/product_widget.dart';
-import 'package:flutter_grocery/common/widgets/web_app_bar_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_header_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_category_drawer.dart';
+import 'package:flutter_grocery/common/widgets/web/web_sidebar_menu.dart';
+import 'package:flutter_grocery/common/widgets/web/web_product_card.dart';
 import 'package:flutter_grocery/common/widgets/web_product_shimmer_widget.dart';
 import 'package:flutter_grocery/features/search/widgets/filter_widget.dart';
 import 'package:provider/provider.dart';
@@ -45,7 +48,9 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
 
     return Scaffold(
       appBar: ResponsiveHelper.isDesktop(context)
-          ? const PreferredSize(preferredSize: Size.fromHeight(120), child: WebAppBarWidget()) : null,
+          ? const WebHeaderWidget() : null,
+      drawer: ResponsiveHelper.isDesktop(context) ? const WebCategoryDrawer() : null,
+      endDrawer: ResponsiveHelper.isDesktop(context) ? const WebSidebarMenu() : null,
       body: SafeArea(child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall),
           child: Consumer<SearchProvider>(
@@ -90,6 +95,41 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
                       ),
 
                     ]) : const SizedBox(),
+
+                    // Search Results Header for Desktop
+                    if (ResponsiveHelper.isDesktop(context)) ...[
+                      const SizedBox(height: Dimensions.paddingSizeLarge),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall),
+                        child: Row(
+                          children: [
+                            Text(
+                              'Search Results For ',
+                              style: poppinsMedium.copyWith(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              '"${widget.searchString}"',
+                              style: poppinsMedium.copyWith(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                                color: Theme.of(context).primaryColor,
+                              ),
+                            ),
+                            Text(
+                              ' | ${searchProvider.searchProductModel?.products?.length ?? 0} Items',
+                              style: poppinsMedium.copyWith(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+
                     const SizedBox(height: Dimensions.paddingSizeSmall),
 
                     Container(
@@ -187,12 +227,17 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall, vertical: Dimensions.paddingSizeLarge),
                         physics: const NeverScrollableScrollPhysics(),
                         shrinkWrap: true,
-                        itemBuilder: (BuildContext context, int index) => ProductWidget(
-                          product: searchProvider.searchProductModel!.products![index],
-                          productType: ProductType.searchItem,
-                          isGrid: true,
-                          isCenter: true,
-                        ),
+                        itemBuilder: (BuildContext context, int index) => ResponsiveHelper.isDesktop(context)
+                            ? WebProductCard(
+                                product: searchProvider.searchProductModel!.products![index],
+                                productType: ProductType.searchItem,
+                              )
+                            : ProductWidget(
+                                product: searchProvider.searchProductModel!.products![index],
+                                productType: ProductType.searchItem,
+                                isGrid: true,
+                                isCenter: true,
+                              ),
 
                       ),
                     ) : NoDataWidget(isFooter: false, title: getTranslated('not_product_found', context)),

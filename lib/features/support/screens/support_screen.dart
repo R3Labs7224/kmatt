@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_grocery/common/enums/footer_type_enum.dart';
+import 'package:flutter_grocery/common/widgets/web/web_category_drawer.dart';
+import 'package:flutter_grocery/common/widgets/web/web_header_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_sidebar_menu.dart';
 import 'package:flutter_grocery/helper/responsive_helper.dart';
 import 'package:flutter_grocery/helper/route_helper.dart';
 import 'package:flutter_grocery/localization/language_constraints.dart';
@@ -9,7 +12,6 @@ import 'package:flutter_grocery/utill/images.dart';
 import 'package:flutter_grocery/utill/styles.dart';
 import 'package:flutter_grocery/common/widgets/custom_button_widget.dart';
 import 'package:flutter_grocery/common/widgets/footer_web_widget.dart';
-import 'package:flutter_grocery/common/widgets/web_app_bar_widget.dart';
 import 'package:flutter_grocery/features/product/widgets/details_app_bar_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -22,8 +24,10 @@ class SupportScreen extends StatelessWidget {
     final double width = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: ResponsiveHelper.isDesktop(context)
-          ? const PreferredSize(preferredSize: Size.fromHeight(120), child: WebAppBarWidget()) : const DetailsAppBarWidget(),
-
+          ? const WebHeaderWidget() as PreferredSizeWidget
+          : const DetailsAppBarWidget(),
+      drawer: ResponsiveHelper.isDesktop(context) ? const WebCategoryDrawer() : null,
+      endDrawer: ResponsiveHelper.isDesktop(context) ? const WebSidebarMenu() : null,
       body: CustomScrollView(slivers: [
         SliverToBoxAdapter(child: Center(child: Padding(
             padding: const EdgeInsets.all(Dimensions.paddingSizeLarge),

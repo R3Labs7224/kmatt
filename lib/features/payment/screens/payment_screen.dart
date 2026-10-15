@@ -13,6 +13,7 @@ import 'package:flutter_grocery/helper/custom_snackbar_helper.dart';
 import 'package:flutter_grocery/features/payment/widgets/cancel_dialog_widget.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PaymentScreen extends StatefulWidget {
   final String? url;
@@ -169,7 +170,7 @@ class MyInAppBrowser extends InAppBrowser {
     }
   }
 
-  void _pageRedirect(String url) {
+  Future<void> _pageRedirect(String url) async {
     if(_canRedirect) {
       bool checkedUrl = (url.contains('${AppConstants.baseUrl}${RouteHelper.orderSuccessful}') || url.contains('${AppConstants.baseUrl}${RouteHelper.wallet}') ||  url.contains('${AppConstants.baseUrl}${RouteHelper.orderDetails}'));
       bool isSuccess = url.contains('success') && checkedUrl;
@@ -197,17 +198,52 @@ class MyInAppBrowser extends InAppBrowser {
         }else{
           if(token.isNotEmpty) {
             final orderProvider =  Provider.of<OrderProvider>(context, listen: false);
-            String placeOrderString =  utf8.decode(base64Url.decode(orderProvider.getPlaceOrder()!.replaceAll(' ', '+')));
 
             String decodeValue = utf8.decode(base64Url.decode(token.replaceAll(' ', '+')));
-            String paymentMethod = decodeValue.substring(0, decodeValue.indexOf('&&'));
-            String transactionReference = decodeValue.substring(decodeValue.indexOf('&&') + '&&'.length, decodeValue.length);
 
+            // Parse token to get order_id (if present from M-Pesa)
+            Map<String, String> tokenParams = {};
+            for (String param in decodeValue.split('&&')) {
+              List<String> keyValue = param.split('=');
+              if (keyValue.length == 2) {
+                tokenParams[keyValue[0]] = keyValue[1];
+              }
+            }
 
+            String? tokenOrderId = tokenParams['order_id'];
 
-            PlaceOrderModel? placeOrderBody =  PlaceOrderModel.fromJson(jsonDecode(placeOrderString)).copyWith(
-              paymentMethod: paymentMethod.replaceAll('payment_method=', ''),
-              transactionReference:  transactionReference.replaceRange(0, transactionReference.indexOf('transaction_reference='), '').replaceAll('transaction_reference=', ''),
+            // If order_id is in the token, the order is already confirmed by M-Pesa handler
+            if (tokenOrderId != null && tokenOrderId.isNotEmpty && tokenOrderId != 'null') {
+              Provider.of<CartProvider>(context, listen: false).clearCartList();
+              orderProvider.clearPlaceOrder();
+              // Clear pending order ID
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.remove('pending_order_id');
+              Navigator.pushReplacementNamed(context, '${RouteHelper.orderSuccessful}/$tokenOrderId/success');
+              return;
+            }
+
+            // Check for stored pending order ID
+            final prefs = await SharedPreferences.getInstance();
+            String? pendingOrderId = prefs.getString('pending_order_id');
+
+            if (pendingOrderId != null && pendingOrderId.isNotEmpty) {
+              // Order was already created as pending and confirmed by server
+              Provider.of<CartProvider>(context, listen: false).clearCartList();
+              orderProvider.clearPlaceOrder();
+              await prefs.remove('pending_order_id');
+              Navigator.pushReplacementNamed(context, '${RouteHelper.orderSuccessful}/$pendingOrderId/success');
+              return;
+            }
+
+            // Legacy flow: Use the old flow for non-M-Pesa payments
+            String placeOrderString = utf8.decode(base64Url.decode(orderProvider.getPlaceOrder()!.replaceAll(' ', '+')));
+            String paymentMethod = tokenParams['payment_method'] ?? '';
+            String? transactionReference = tokenParams['transaction_reference'];
+
+            PlaceOrderModel? placeOrderBody = PlaceOrderModel.fromJson(jsonDecode(placeOrderString)).copyWith(
+              paymentMethod: paymentMethod,
+              transactionReference: transactionReference,
             );
 
             Provider.of<OrderProvider>(context, listen: false).placeOrder(placeOrderBody, _callback);
@@ -222,8 +258,24 @@ class MyInAppBrowser extends InAppBrowser {
         Navigator.pushReplacementNamed(context, RouteHelper.getWalletRoute(token: 'failed',status: 'failed'));
 
       }else if(isFailed) {
+        // Cancel pending order on failure
+        final prefs = await SharedPreferences.getInstance();
+        String? pendingOrderId = prefs.getString('pending_order_id');
+        if (pendingOrderId != null && pendingOrderId.isNotEmpty) {
+          final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+          await orderProvider.cancelPendingOrder(orderId: pendingOrderId);
+          await prefs.remove('pending_order_id');
+        }
         Navigator.pushReplacementNamed(context, '${RouteHelper.orderSuccessful}/${'No'}/payment-fail');
       }else if(isCancel) {
+        // Cancel pending order on cancellation
+        final prefs = await SharedPreferences.getInstance();
+        String? pendingOrderId = prefs.getString('pending_order_id');
+        if (pendingOrderId != null && pendingOrderId.isNotEmpty) {
+          final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+          await orderProvider.cancelPendingOrder(orderId: pendingOrderId);
+          await prefs.remove('pending_order_id');
+        }
         Navigator.pushReplacementNamed(context, '${RouteHelper.orderSuccessful}/${'No'}/payment-cancel');
       }
     }
@@ -233,6 +285,9 @@ class MyInAppBrowser extends InAppBrowser {
   void _callback(bool isSuccess, String message, String orderID) async {
     Provider.of<CartProvider>(context, listen: false).clearCartList();
     Provider.of<OrderProvider>(context, listen: false).stopLoader();
+    // Clear pending order ID
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('pending_order_id');
     if(isSuccess) {
       Navigator.pushReplacementNamed(context, '${RouteHelper.orderSuccessful}/$orderID/success');
     }else {

@@ -20,7 +20,9 @@ import 'package:flutter_grocery/helper/custom_snackbar_helper.dart';
 import 'package:flutter_grocery/common/widgets/footer_web_widget.dart';
 import 'package:flutter_grocery/common/widgets/no_data_widget.dart';
 import 'package:flutter_grocery/common/widgets/not_login_widget.dart';
-import 'package:flutter_grocery/common/widgets/web_app_bar_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_header_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_category_drawer.dart';
+import 'package:flutter_grocery/common/widgets/web/web_sidebar_menu.dart';
 import 'package:flutter_grocery/features/wallet_and_loyalty/widgets/bonus_slider_widget.dart';
 import 'package:flutter_grocery/features/wallet_and_loyalty/widgets/wallet_card_widget.dart';
 import 'package:flutter_grocery/features/wallet_and_loyalty/widgets/wallet_history_list_widget.dart';
@@ -117,8 +119,10 @@ class _WalletScreenState extends State<WalletScreen> {
         resizeToAvoidBottomInset: false,
         backgroundColor: Theme.of(context).cardColor,
         appBar: ResponsiveHelper.isDesktop(context)
-            ? const PreferredSize(preferredSize: Size.fromHeight(100), child: WebAppBarWidget())
+            ? const WebHeaderWidget()
             : null,
+        drawer: ResponsiveHelper.isDesktop(context) ? const WebCategoryDrawer() : null,
+        endDrawer: ResponsiveHelper.isDesktop(context) ? const WebSidebarMenu() : null,
 
         body: Consumer<WalletAndLoyaltyProvider>(builder: (context, walletProvider, _) {
           entryList = WalletHelper.getPopupMenuList(walletFilterList: walletProvider.walletFilterList, type: walletProvider.type);

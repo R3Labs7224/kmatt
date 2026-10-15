@@ -14,7 +14,7 @@ import 'package:flutter_grocery/utill/styles.dart';
 import 'package:flutter_grocery/common/widgets/custom_button_widget.dart';
 import 'package:flutter_grocery/common/widgets/custom_loader_widget.dart';
 import 'package:flutter_grocery/common/widgets/footer_web_widget.dart';
-import 'package:flutter_grocery/common/widgets/web_app_bar_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_header_widget.dart';
 import 'package:flutter_grocery/features/menu/screens/menu_screen.dart';
 import 'package:provider/provider.dart';
 
@@ -52,7 +52,7 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen> {
       }),
       child: Scaffold(
         backgroundColor: Theme.of(context).cardColor,
-        appBar: ResponsiveHelper.isDesktop(context) ? const PreferredSize(preferredSize: Size.fromHeight(120), child: WebAppBarWidget()): null,
+        appBar: ResponsiveHelper.isDesktop(context) ? const WebHeaderWidget() : null,
         body: Consumer<OrderProvider>(
             builder: (context, orderProvider, _) {
               double total = 0;
@@ -75,7 +75,12 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen> {
 
                     widget.status == 0 ? Image.asset(
                       Images.orderPlaced, width: 150, height: 150, color: Theme.of(context).primaryColor,
-                    ) : const Icon(Icons.sms_failed_outlined, size: 150),
+                    ) : Image.asset(
+                      'assets/image/payment_failed.png',
+                      width: 200,
+                      height: 200,
+                      fit: BoxFit.contain,
+                    ),
 
                     const SizedBox(height: Dimensions.paddingSizeLarge),
 

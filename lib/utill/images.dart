@@ -70,7 +70,7 @@ class Images {
   static const String percentage = 'assets/image/percentage.png';
   static const String line = 'assets/image/line.png';
   static const String call = 'assets/image/call.png';
-  static const String placeHolder = 'assets/image/place_holder.png';
+  static const String placeHolder = 'assets/image/placeholder.jpg';
   static const String update = 'assets/image/update.png';
 
   static const String camera = 'assets/image/camera.png';

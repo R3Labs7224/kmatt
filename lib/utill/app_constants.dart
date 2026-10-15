@@ -82,6 +82,11 @@ class AppConstants {
   static const String switchPaymentMethod = '/api/v1/customer/order/switch-payment-method';
   static const String digitalPaymentResponse = '/api/v1/customer/order/switch-digital-payment-response';
 
+  // Pending order management for digital payments
+  static const String createPendingOrderUri = '/api/v1/customer/order/create-pending';
+  static const String confirmPendingOrderUri = '/api/v1/customer/order/confirm-pending';
+  static const String cancelPendingOrderUri = '/api/v1/customer/order/cancel-pending';
+
 
 
   //MESSAGING

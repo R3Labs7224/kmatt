@@ -10,6 +10,9 @@ import 'package:flutter_grocery/utill/styles.dart';
 import 'package:flutter_grocery/common/widgets/app_bar_base_widget.dart';
 import 'package:flutter_grocery/common/widgets/not_login_widget.dart';
 import 'package:flutter_grocery/common/widgets/web_app_bar_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_header_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_category_drawer.dart';
+import 'package:flutter_grocery/common/widgets/web/web_sidebar_menu.dart';
 import 'package:flutter_grocery/features/order/widgets/order_widget.dart';
 import 'package:provider/provider.dart';
 
@@ -52,7 +55,13 @@ class _OrderListScreenState extends State<OrderListScreen> with TickerProviderSt
 
 
     return Scaffold(
-      appBar: ResponsiveHelper.isMobilePhone() ? null: (ResponsiveHelper.isDesktop(context) ? const PreferredSize(preferredSize: Size.fromHeight(120), child: WebAppBarWidget()) : const AppBarBaseWidget()) as PreferredSizeWidget?,
+      appBar: ResponsiveHelper.isMobilePhone()
+          ? null
+          : (ResponsiveHelper.isDesktop(context)
+              ? const WebHeaderWidget()
+              : const AppBarBaseWidget()) as PreferredSizeWidget?,
+      drawer: ResponsiveHelper.isDesktop(context) ? const WebCategoryDrawer() : null,
+      endDrawer: ResponsiveHelper.isDesktop(context) ? const WebSidebarMenu() : null,
 
       body: isLoggedIn ? Consumer<OrderProvider>(
         builder: (context, orderProvider, child){

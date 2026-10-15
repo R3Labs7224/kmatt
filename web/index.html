@@ -47,7 +47,7 @@
   <script src="flutter.js?version=7.7" defer></script>
 
 </head>
-<body>
+<body class="loading-skeleton">
 
 
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA0ApENq-E9oP7PK86riYyU-St3SmJvMqU&callback=Function.prototype"></script>
@@ -59,31 +59,61 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js"></script>
 
-<div class="preloader">
-  <div class="preloader-container">
-    <img width="55" class="preloader-img" src="assets/preloader.svg" alt="">
-    <div class="loader"></div>
-  </div>
-</div>
+<!-- Loading Skeleton - Will be removed when Flutter loads -->
+<div id="flutter-loading">
 <!-- Header -->
 <header class="header">
-  <div class="header-top-line"></div>
-  <div class="header-container d-flex align-items-center justify-content-between">
-    <div class="header-start d-flex gap-4 align-items-center">
-      <img class="logo" src="assets/logo.svg" alt="">
-      <div class="placeholder"></div>
-      <div class="placeholder"></div>
-      <div class="placeholder"></div>
+  <div class="header-main">
+    <div class="header-container d-flex align-items-center justify-content-between">
+      <!-- Logo -->
+      <div class="header-logo-container">
+        <img class="logo" src="icons/app_logo.png" alt="Logo">
+      </div>
+
+      <div class="spacer"></div>
+
+      <!-- Search Bar -->
+      <div class="header-search">
+        <div class="search-placeholder"></div>
+      </div>
+
+      <div class="header-actions d-flex align-items-center gap-3">
+        <!-- Sign In / Profile -->
+        <div class="action-button"></div>
+        <!-- Cart -->
+        <div class="action-button"></div>
+        <!-- Hamburger Menu -->
+        <div class="action-button"></div>
+      </div>
     </div>
-    <div class="header-end d-flex align-items-center gap-4">
-      <div class="placeholder placeholder-wide"></div>
-      <div class="placeholder"></div>
-      <div class="placeholder"></div>
-      <img class="svg" src="assets/cart_icon.svg" alt="">
-      <img class="svg" src="assets/menu_icon.svg" alt="">
+  </div>
+
+  <!-- Bottom Navigation Bar -->
+  <div class="header-bottom">
+    <div class="header-container d-flex align-items-center justify-content-between">
+      <div class="bottom-nav-item d-flex align-items-center gap-2">
+        <div class="nav-icon-placeholder"></div>
+        <div class="nav-text-placeholder"></div>
+      </div>
+      <div class="bottom-nav-item">
+        <div class="nav-text-placeholder"></div>
+      </div>
     </div>
   </div>
 </header>
+
+<!-- Main Content with Banner Skeleton -->
+<div class="main-content">
+  <div class="banner-skeleton">
+    <div class="banner-placeholder"></div>
+  </div>
+
+  <div class="loading-spinner-container">
+    <div class="loader"></div>
+  </div>
+</div>
+</div>
+<!-- End Loading Skeleton -->
 
 <script>
   // Check if localStorage is supported in the browser
@@ -109,6 +139,20 @@
         engineInitializer.initializeEngine(config).then(function(appRunner) {
           appRunner.runApp();
 
+          // Wait for Flutter to render, then fade out skeleton smoothly
+          setTimeout(function() {
+            var loadingSkeleton = document.getElementById('flutter-loading');
+            if (loadingSkeleton) {
+              // Add fade-out class
+              loadingSkeleton.classList.add('fade-out');
+
+              // Remove skeleton after fade animation completes
+              setTimeout(function() {
+                loadingSkeleton.remove();
+                document.body.classList.remove('loading-skeleton');
+              }, 300); // Match CSS animation duration
+            }
+          }, 500); // Wait longer for Flutter to fully render
 
         });
       }

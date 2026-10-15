@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_grocery/common/enums/footer_type_enum.dart';
 import 'package:flutter_grocery/common/models/config_model.dart';
+import 'package:flutter_grocery/common/widgets/web/mobile_bottom_nav_bar.dart';
+import 'package:flutter_grocery/common/widgets/web/web_category_drawer.dart';
+import 'package:flutter_grocery/common/widgets/web/web_header_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_sidebar_menu.dart';
 import 'package:flutter_grocery/features/order/domain/models/order_model.dart';
 import 'package:flutter_grocery/features/order_track/widgets/track_map_button_widget.dart';
 import 'package:flutter_grocery/helper/date_converter_helper.dart';
@@ -20,7 +24,6 @@ import 'package:flutter_grocery/common/widgets/custom_directionality_widget.dart
 import 'package:flutter_grocery/common/widgets/custom_loader_widget.dart';
 import 'package:flutter_grocery/common/widgets/footer_web_widget.dart';
 import 'package:flutter_grocery/common/widgets/no_data_widget.dart';
-import 'package:flutter_grocery/common/widgets/web_app_bar_widget.dart';
 import 'package:flutter_grocery/features/order/widgets/custom_stepper_widget.dart';
 import 'package:flutter_grocery/features/order/widgets/delivery_man_widget.dart';
 import 'package:flutter_grocery/features/order/widgets/track_order_shimmer_widget.dart';
@@ -33,7 +36,8 @@ class TrackOrderScreen extends StatefulWidget {
   final bool isBackButton;
   final OrderModel? orderModel;
   final String? phone;
-  const TrackOrderScreen({super.key, required this.orderID, this.isBackButton = false, this.orderModel, this.phone});
+  final String? transactionReference;
+  const TrackOrderScreen({super.key, this.orderID, this.isBackButton = false, this.orderModel, this.phone, this.transactionReference});
 
   @override
   State<TrackOrderScreen> createState() => _TrackOrderScreenState();
@@ -47,7 +51,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
     Provider.of<LocationProvider>(context, listen: false).initAddressList();
 
 
-    orderProvider.trackOrder(widget.orderID, widget.orderModel,  context, true, isUpdate: false, phoneNumber: widget.phone ).whenComplete((){
+    orderProvider.trackOrder(widget.orderID, widget.orderModel,  context, true, isUpdate: false, phoneNumber: widget.phone, transactionReference: widget.transactionReference ).whenComplete((){
       if(orderProvider.trackModel?.deliveryMan != null && mounted){
         orderProvider.getDeliveryManData(context, orderId: widget.orderID, deliverymanId: orderProvider.trackModel?.deliveryMan?.id.toString() ?? "");
       }
@@ -63,10 +67,15 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
     final ConfigModel? config = Provider.of<SplashProvider>(context, listen: false).configModel;
 
     return Scaffold(
-      appBar: (ResponsiveHelper.isDesktop(context)? const PreferredSize(preferredSize: Size.fromHeight(120), child: WebAppBarWidget()): CustomAppBarWidget(
+      appBar: (ResponsiveHelper.isDesktop(context)
+          ? const WebHeaderWidget()
+          : CustomAppBarWidget(
         title: getTranslated('order_track', context),
         isCenter: false,
       )) as PreferredSizeWidget?,
+      drawer: ResponsiveHelper.isDesktop(context) ? const WebCategoryDrawer() : null,
+      endDrawer: ResponsiveHelper.isDesktop(context) ? const WebSidebarMenu() : null,
+      bottomNavigationBar: ResponsiveHelper.isDesktop(context) ? const MobileBottomNavBar(currentIndex: 2) : null,
       body: Column(children: [
         Expanded(child: CustomScrollView(slivers: [
           SliverToBoxAdapter(child: Center(child: Consumer<OrderProvider>(

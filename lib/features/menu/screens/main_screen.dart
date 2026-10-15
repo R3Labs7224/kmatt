@@ -106,7 +106,7 @@ class _MainScreenState extends State<MainScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 50.0),
                       child: ThirdPartyChatWidget(configModel: splash.configModel),
                     ) : null,
-                    appBar: ResponsiveHelper.isDesktop(context) ? null : AppBar(
+                    appBar: (ResponsiveHelper.isDesktop(context) || kIsWeb) ? null : AppBar(
                       backgroundColor: Theme.of(context).cardColor,
                       leading: IconButton(
                           icon: Image.asset(Images.moreIcon, color: Theme.of(context).primaryColor, height: 30, width: 30),

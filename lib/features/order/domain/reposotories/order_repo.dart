@@ -48,11 +48,22 @@ class OrderRepo {
     }
   }
 
-  Future<ApiResponseModel> trackOrder(String? orderID, String? phoneNumber) async {
+  Future<ApiResponseModel> trackOrder(String? orderID, String? phoneNumber, {String? transactionReference}) async {
     try {
-      final response = await dioClient!.post(AppConstants.trackUri, data: {
-        'order_id' : orderID, 'phone' : phoneNumber == 'null' ? null : phoneNumber,
-      });
+      Map<String, dynamic> data = {};
+
+      // New format: use transaction reference (M-Pesa reference)
+      if (transactionReference != null && transactionReference.isNotEmpty) {
+        data['ref'] = transactionReference;
+      } else {
+        // Legacy format: use order_id and token for backward compatibility
+        data['order_id'] = orderID;
+        if (phoneNumber != null && phoneNumber != 'null') {
+          data['token'] = phoneNumber;
+        }
+      }
+
+      final response = await dioClient!.post(AppConstants.trackUri, data: data);
       return ApiResponseModel.withSuccess(response);
     } catch (e) {
       return ApiResponseModel.withError(ApiErrorHandler.getMessage(e));
@@ -168,6 +179,51 @@ class OrderRepo {
   Future<ApiResponseModel> getDigitalPaymentResponse({String? transactionId}) async {
     try {
       final response = await dioClient!.get("${AppConstants.digitalPaymentResponse}?transaction_id=$transactionId");
+      return ApiResponseModel.withSuccess(response);
+    } catch (e) {
+      return ApiResponseModel.withError(ApiErrorHandler.getMessage(e));
+    }
+  }
+
+  /// Create a pending order before digital payment
+  /// This ensures the real order ID is available for M-Pesa reference
+  Future<ApiResponseModel> createPendingOrder(PlaceOrderModel orderBody) async {
+    try {
+      final response = await dioClient!.post(
+        AppConstants.createPendingOrderUri,
+        data: orderBody.toJson(),
+      );
+      return ApiResponseModel.withSuccess(response);
+    } catch (e) {
+      return ApiResponseModel.withError(ApiErrorHandler.getMessage(e));
+    }
+  }
+
+  /// Confirm a pending order after successful payment
+  Future<ApiResponseModel> confirmPendingOrder({required String orderId, String? transactionReference}) async {
+    try {
+      final response = await dioClient!.post(
+        AppConstants.confirmPendingOrderUri,
+        data: {
+          'order_id': orderId,
+          'transaction_reference': transactionReference,
+        },
+      );
+      return ApiResponseModel.withSuccess(response);
+    } catch (e) {
+      return ApiResponseModel.withError(ApiErrorHandler.getMessage(e));
+    }
+  }
+
+  /// Cancel a pending order (payment failed/cancelled)
+  Future<ApiResponseModel> cancelPendingOrder({required String orderId}) async {
+    try {
+      final response = await dioClient!.post(
+        AppConstants.cancelPendingOrderUri,
+        data: {
+          'order_id': orderId,
+        },
+      );
       return ApiResponseModel.withSuccess(response);
     } catch (e) {
       return ApiResponseModel.withError(ApiErrorHandler.getMessage(e));

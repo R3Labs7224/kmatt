@@ -18,7 +18,9 @@ import 'package:flutter_grocery/common/widgets/footer_web_widget.dart';
 import 'package:flutter_grocery/common/widgets/no_data_widget.dart';
 import 'package:flutter_grocery/common/widgets/not_login_widget.dart';
 import 'package:flutter_grocery/common/widgets/title_widget.dart';
-import 'package:flutter_grocery/common/widgets/web_app_bar_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_header_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_category_drawer.dart';
+import 'package:flutter_grocery/common/widgets/web/web_sidebar_menu.dart';
 import 'package:flutter_grocery/features/wallet_and_loyalty/widgets/convert_money_widget.dart';
 import 'package:flutter_grocery/features/wallet_and_loyalty/widgets/history_widget.dart';
 import 'package:flutter_grocery/features/wallet_and_loyalty/widgets/tab_button_widget.dart';
@@ -93,8 +95,10 @@ class _LoyaltyScreenState extends State<LoyaltyScreen> {
         resizeToAvoidBottomInset: false,
         backgroundColor: Theme.of(context).cardColor,
         appBar: ResponsiveHelper.isDesktop(context)
-            ? const PreferredSize(preferredSize: Size.fromHeight(100), child: WebAppBarWidget())
+            ? const WebHeaderWidget()
             : null,
+        drawer: ResponsiveHelper.isDesktop(context) ? const WebCategoryDrawer() : null,
+        endDrawer: ResponsiveHelper.isDesktop(context) ? const WebSidebarMenu() : null,
 
         body: Consumer<ProfileProvider>(builder: (context, profileProvider, _) {
           return configModel.loyaltyPointStatus!? _isLoggedIn ? profileProvider.userInfoModel != null ? SafeArea(

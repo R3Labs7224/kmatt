@@ -16,7 +16,9 @@ import 'package:flutter_grocery/common/widgets/app_bar_base_widget.dart';
 import 'package:flutter_grocery/helper/custom_snackbar_helper.dart';
 import 'package:flutter_grocery/common/widgets/no_data_widget.dart';
 import 'package:flutter_grocery/common/widgets/not_login_widget.dart';
-import 'package:flutter_grocery/common/widgets/web_app_bar_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_header_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_category_drawer.dart';
+import 'package:flutter_grocery/common/widgets/web/web_sidebar_menu.dart';
 import 'package:provider/provider.dart';
 
 import '../../../common/widgets/footer_web_widget.dart';
@@ -51,7 +53,9 @@ class _CouponScreenState extends State<CouponScreen> {
 
 
     return Scaffold(
-      appBar: ResponsiveHelper.isMobilePhone()? null: (ResponsiveHelper.isDesktop(context)? const PreferredSize(preferredSize: Size.fromHeight(120), child: WebAppBarWidget()): const AppBarBaseWidget()) as PreferredSizeWidget?,
+      appBar: ResponsiveHelper.isMobilePhone()? null: (ResponsiveHelper.isDesktop(context)? const WebHeaderWidget(): const AppBarBaseWidget()) as PreferredSizeWidget?,
+      drawer: ResponsiveHelper.isDesktop(context) ? const WebCategoryDrawer() : null,
+      endDrawer: ResponsiveHelper.isDesktop(context) ? const WebSidebarMenu() : null,
       body: isLoggedIn || isGuestCheckout ? Consumer<CouponProvider>(
         builder: (context, couponProvider, child) {
           return couponProvider.couponList == null ?  Center(

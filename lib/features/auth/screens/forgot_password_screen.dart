@@ -21,7 +21,9 @@ import 'package:flutter_grocery/common/widgets/custom_button_widget.dart';
 import 'package:flutter_grocery/helper/custom_snackbar_helper.dart';
 import 'package:flutter_grocery/common/widgets/custom_text_field_widget.dart';
 import 'package:flutter_grocery/common/widgets/footer_web_widget.dart';
-import 'package:flutter_grocery/common/widgets/web_app_bar_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_header_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_category_drawer.dart';
+import 'package:flutter_grocery/common/widgets/web/web_sidebar_menu.dart';
 import 'package:provider/provider.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -57,7 +59,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     }
 
     return Scaffold(
-      appBar: (ResponsiveHelper.isDesktop(context)? const PreferredSize(preferredSize: Size.fromHeight(120), child: WebAppBarWidget()): CustomAppBarWidget(title: getTranslated('forgot_password', context))) as PreferredSizeWidget?,
+      appBar: ResponsiveHelper.isDesktop(context)
+          ? const WebHeaderWidget() as PreferredSizeWidget
+          : CustomAppBarWidget(title: getTranslated('forgot_password', context)),
+      drawer: ResponsiveHelper.isDesktop(context) ? const WebCategoryDrawer() : null,
+      endDrawer: ResponsiveHelper.isDesktop(context) ? const WebSidebarMenu() : null,
       body: CustomScrollView(slivers: [
         SliverToBoxAdapter(child: Center(child: Container(
           width: !ResponsiveHelper.isMobile() ? 700 : width,

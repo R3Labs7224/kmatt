@@ -19,6 +19,9 @@ import 'package:flutter_grocery/common/widgets/custom_text_field_widget.dart';
 import 'package:flutter_grocery/common/widgets/footer_web_widget.dart';
 import 'package:flutter_grocery/features/auth/screens/login_screen.dart';
 import 'package:flutter_grocery/common/widgets/web_app_bar_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_header_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_category_drawer.dart';
+import 'package:flutter_grocery/common/widgets/web/web_sidebar_menu.dart';
 import 'package:provider/provider.dart';
 
 class CreateAccountScreen extends StatefulWidget {
@@ -62,7 +65,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
     final double width = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      appBar: ResponsiveHelper.isDesktop(context)? const PreferredSize(preferredSize: Size.fromHeight(120), child: WebAppBarWidget()) :null,
+      appBar: ResponsiveHelper.isDesktop(context) ? const WebHeaderWidget() as PreferredSizeWidget : null,
+      drawer: ResponsiveHelper.isDesktop(context) ? const WebCategoryDrawer() : null,
+      endDrawer: ResponsiveHelper.isDesktop(context) ? const WebSidebarMenu() : null,
       body: Consumer<AuthProvider>(builder: (context, authProvider, child) => SafeArea(
         child: CustomScrollView(slivers: [
 

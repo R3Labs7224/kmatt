@@ -254,7 +254,7 @@ class OrderProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<ResponseModel> trackOrder(String? orderID, OrderModel? orderModel, BuildContext context, bool fromTracking, {String? phoneNumber, bool isUpdate = true}) async {
+  Future<ResponseModel> trackOrder(String? orderID, OrderModel? orderModel, BuildContext context, bool fromTracking, {String? phoneNumber, bool isUpdate = true, String? transactionReference}) async {
     _trackModel = null;
     ResponseModel responseModel;
     if(!fromTracking) {
@@ -267,7 +267,7 @@ class OrderProvider extends ChangeNotifier {
         notifyListeners();
       }
 
-      ApiResponseModel apiResponse = await orderRepo!.trackOrder(orderID, phoneNumber);
+      ApiResponseModel apiResponse = await orderRepo!.trackOrder(orderID, phoneNumber, transactionReference: transactionReference);
       if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
         _trackModel = OrderModel.fromJson(apiResponse.response!.data);
         responseModel = ResponseModel(true, apiResponse.response!.data.toString());
@@ -675,7 +675,60 @@ class OrderProvider extends ChangeNotifier {
     return paymentResponseModel;
   }
 
+  /// Create a pending order before digital payment
+  /// Returns the order ID if successful, null otherwise
+  Future<String?> createPendingOrder(PlaceOrderModel placeOrderBody) async {
+    _isLoading = true;
+    notifyListeners();
 
+    ApiResponseModel apiResponse = await orderRepo!.createPendingOrder(placeOrderBody);
 
+    String? orderId;
+    if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
+      orderId = apiResponse.response!.data['order_id'].toString();
+    } else {
+      ApiCheckerHelper.checkApi(apiResponse);
+    }
+
+    _isLoading = false;
+    notifyListeners();
+
+    return orderId;
+  }
+
+  /// Confirm a pending order after successful payment
+  Future<bool> confirmPendingOrder({required String orderId, String? transactionReference}) async {
+    _isLoading = true;
+    notifyListeners();
+
+    ApiResponseModel apiResponse = await orderRepo!.confirmPendingOrder(
+      orderId: orderId,
+      transactionReference: transactionReference,
+    );
+
+    bool success = false;
+    if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
+      success = true;
+    } else {
+      ApiCheckerHelper.checkApi(apiResponse);
+    }
+
+    _isLoading = false;
+    notifyListeners();
+
+    return success;
+  }
+
+  /// Cancel a pending order (payment failed/cancelled)
+  Future<bool> cancelPendingOrder({required String orderId}) async {
+    ApiResponseModel apiResponse = await orderRepo!.cancelPendingOrder(orderId: orderId);
+
+    bool success = false;
+    if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
+      success = true;
+    }
+
+    return success;
+  }
 
 }

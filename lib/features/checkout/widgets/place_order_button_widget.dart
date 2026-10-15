@@ -33,6 +33,7 @@ import 'package:flutter_grocery/utill/app_constants.dart';
 import 'package:flutter_grocery/utill/dimensions.dart';
 import 'package:flutter_grocery/utill/styles.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_html/html.dart' as html;
 
 
@@ -194,20 +195,35 @@ class PlaceOrderButtonWidget extends StatelessWidget {
                   orderProvider.placeOrder(placeOrderBody, _callback);
 
                 } else{
+                  // For digital payments (M-Pesa, etc.), create pending order first
+                  // This ensures the real order ID is shown in M-Pesa message
+                  String? pendingOrderId = await orderProvider.createPendingOrder(placeOrderBody);
+
+                  if (pendingOrderId == null) {
+                    showCustomSnackBarHelper(getTranslated('failed_to_create_order', context), isError: true);
+                    return;
+                  }
+
                   String? hostname = html.window.location.hostname;
                   String protocol = html.window.location.protocol;
                   String port = html.window.location.port;
                   final String placeOrder =  convert.base64Url.encode(convert.utf8.encode(convert.jsonEncode(placeOrderBody.toJson())));
 
+                  // Include pending_order_id in the payment URL so M-Pesa uses real order ID
                   String url = "customer_id=${profileProvider.userInfoModel?.id ?? authProvider.getGuestId()}&&is_guest=${authProvider.getGuestId() != null ? '1' :'0'}"
-                      "&&callback=${AppConstants.baseUrl}${RouteHelper.orderSuccessful}&&order_amount=${(checkOutData.amount! + (checkOutData.deliveryCharge ?? 0)).toStringAsFixed(2)}";
+                      "&&callback=${AppConstants.baseUrl}${RouteHelper.orderSuccessful}&&order_amount=${(checkOutData.amount! + (checkOutData.deliveryCharge ?? 0)).toStringAsFixed(2)}"
+                      "&&pending_order_id=$pendingOrderId";
 
                   String webUrl = "customer_id=${profileProvider.userInfoModel?.id ?? authProvider.getGuestId()}&&is_guest=${authProvider.getGuestId() != null ? '1' :'0'}"
-                      "&&callback=$protocol//$hostname${kDebugMode ? ':$port' : ''}${'${RouteHelper.orderWebPayment}/get_way'}&&order_amount=${(checkOutData.amount! + (checkOutData.deliveryCharge ?? 0)).toStringAsFixed(2)}&&status=";
+                      "&&callback=$protocol//$hostname${kDebugMode ? ':$port' : ''}${'${RouteHelper.orderWebPayment}/get_way'}&&order_amount=${(checkOutData.amount! + (checkOutData.deliveryCharge ?? 0)).toStringAsFixed(2)}&&status="
+                      "&&pending_order_id=$pendingOrderId";
 
                   String tokenUrl = convert.base64Encode(convert.utf8.encode(ResponsiveHelper.isWeb() ? webUrl : url));
                   String selectedUrl = '${AppConstants.baseUrl}/payment-mobile?token=$tokenUrl&&payment_method=${orderProvider.selectedPaymentMethod?.getWay}&&payment_platform=${kIsWeb ? 'web' : 'app'}&&is_partial=${orderProvider.partialAmount == null ? '0' : '1'}';
 
+                  // Store the pending order ID for use after payment callback
+                  final SharedPreferences prefs = await SharedPreferences.getInstance();
+                  await prefs.setString('pending_order_id', pendingOrderId);
 
                   orderProvider.clearPlaceOrder().then((_) => orderProvider.setPlaceOrder(placeOrder).then((value) {
                     if(ResponsiveHelper.isWeb()){

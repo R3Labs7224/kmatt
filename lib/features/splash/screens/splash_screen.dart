@@ -19,10 +19,9 @@ import 'package:flutter_grocery/helper/route_helper.dart';
 import 'package:flutter_grocery/localization/language_constraints.dart';
 import 'package:flutter_grocery/main.dart';
 import 'package:flutter_grocery/utill/app_constants.dart';
-import 'package:flutter_grocery/utill/dimensions.dart';
 import 'package:flutter_grocery/utill/images.dart';
-import 'package:flutter_grocery/utill/styles.dart';
 import 'package:flutter_grocery/features/onboarding/screens/on_boarding_screen.dart';
+import 'package:flutter_grocery/theme/app_colors.dart';
 import 'package:provider/provider.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -172,21 +171,78 @@ class _SplashScreenState extends State<SplashScreen> {
               _onConfigAction(
                   splashProvider.configModel, splashProvider, context);
             }
+
+            // Web-specific splash screen with modern design matching header
+            if (ResponsiveHelper.isDesktop(context)) {
+              return Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.webDarkBackground
+                      : const Color(0xFFF8F9FA),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Logo from backend - matching header style
+                    Container(
+                      width: 200,
+                      height: 80,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Colors.grey.shade300,
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withValues(alpha: 0.1),
+                            spreadRadius: 1,
+                            blurRadius: 4,
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: splashProvider.configModel?.ecommerceLogo != null && splashProvider.baseUrls != null
+                              ? Image.network(
+                                  '${splashProvider.baseUrls!.ecommerceImageUrl}/${splashProvider.configModel!.ecommerceLogo!}',
+                                  height: 80,
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (context, error, stackTrace) => Image.asset(
+                                    Images.appLogo,
+                                    height: 80,
+                                  ),
+                                )
+                              : Image.asset(Images.appLogo, height: 80),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Loading indicator with blue color matching header
+                    const SizedBox(
+                      width: 32,
+                      height: 32,
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.webPrimaryBlue),
+                        strokeWidth: 3,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            // Mobile splash screen (unchanged)
             return Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Image.asset(Images.appLogo, height: 130, width: 500),
-                const SizedBox(height: Dimensions.paddingSizeSmall),
-
-                Text(AppConstants.appName,
-                    textAlign: TextAlign.center,
-                    style: poppinsMedium.copyWith(
-                      color: Theme
-                          .of(context)
-                          .primaryColor,
-                      fontSize: 30,
-                    )),
+                Image.asset(Images.appLogo, height: 156, width: 500),
               ],
             );
           }

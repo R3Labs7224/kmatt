@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:fluro/fluro.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_grocery/common/models/config_model.dart';
 import 'package:flutter_grocery/common/models/place_order_model.dart';
@@ -21,7 +21,9 @@ import 'package:flutter_grocery/features/auth/screens/create_account_screen.dart
 import 'package:flutter_grocery/features/auth/screens/login_screen.dart';
 import 'package:flutter_grocery/features/maintainance/screens/maintainance_screen.dart';
 import 'package:flutter_grocery/features/cart/screens/cart_screen.dart';
+import 'package:flutter_grocery/features/cart/screens/web/web_cart_screen.dart';
 import 'package:flutter_grocery/features/category/screens/all_categories_screen.dart';
+import 'package:flutter_grocery/features/category/screens/web/web_all_categories_screen.dart';
 import 'package:flutter_grocery/features/chat/screens/chat_screen.dart';
 import 'package:flutter_grocery/features/checkout/screens/checkout_screen.dart';
 import 'package:flutter_grocery/features/checkout/screens/order_success_screen.dart';
@@ -33,6 +35,7 @@ import 'package:flutter_grocery/features/auth/screens/create_new_password_screen
 import 'package:flutter_grocery/features/auth/screens/forgot_password_screen.dart';
 import 'package:flutter_grocery/features/auth/screens/verification_screen.dart';
 import 'package:flutter_grocery/features/home/screens/home_item_screen.dart';
+import 'package:flutter_grocery/features/home/screens/web/web_home_item_screen.dart';
 import 'package:flutter_grocery/features/html/screens/html_viewer_screen.dart';
 import 'package:flutter_grocery/features/wallet_and_loyalty/screens/loyalty_screen.dart';
 import 'package:flutter_grocery/features/menu/screens/menu_screen.dart';
@@ -45,6 +48,8 @@ import 'package:flutter_grocery/features/order_track/screens/track_order_screen.
 import 'package:flutter_grocery/features/product/screens/category_product_screen.dart';
 import 'package:flutter_grocery/features/product/screens/product_image_screen.dart';
 import 'package:flutter_grocery/features/product/screens/product_details_screen.dart';
+import 'package:flutter_grocery/features/product/screens/web/web_product_details_screen.dart';
+import 'package:flutter_grocery/features/product/screens/web/web_category_products_screen.dart';
 import 'package:flutter_grocery/features/profile/screens/profile_edit_screen.dart';
 import 'package:flutter_grocery/features/profile/screens/profile_screen.dart';
 import 'package:flutter_grocery/features/refer_and_earn/screens/refer_and_earn_screen.dart';
@@ -166,7 +171,20 @@ class RouteHelper {
     return '$checkout?amount=${base64Encode(utf8.encode('$amount'))}&tax=${base64Encode(utf8.encode('$tax'))}&discount=${base64Encode(utf8.encode('$discount'))}&couponDiscount=${base64Encode(utf8.encode('$couponDiscount'))}&type=$type&code=${base64Encode(utf8.encode(code))}&c-type=$freeDelivery&weight=${base64Encode(utf8.encode('$weight'))}';
   }
 
-  static String getOrderTrackingRoute(int? id, String? phoneNumber) => '$trackOrder?id=$id&phone=${Uri.encodeComponent('$phoneNumber')}';
+  /// New URL format: /track-order?ref={transactionReference}
+  /// For external/public links using M-Pesa transaction reference
+  static String getOrderTrackingRouteByRef(String transactionReference) {
+    return '$trackOrder?ref=${Uri.encodeComponent(transactionReference)}';
+  }
+
+  /// Legacy URL format: /track-order/{orderId} or /track-order/{orderId}?token={token}
+  /// Kept for backward compatibility and internal navigation
+  static String getOrderTrackingRoute(int? id, String? phoneNumber, {String? token}) {
+    if (token != null) {
+      return '$trackOrder/$id?token=$token';
+    }
+    return '$trackOrder/$id';
+  }
   static String getTrackMapScreen({OrderModel? order, int? orderId, int? deliverymanId,}){
     String data = base64Url.encode(utf8.encode(jsonEncode(order?.toJson())));
     return "$trackMapScreen?data=$data&deliveryman=$deliverymanId&order=$orderId";
@@ -314,7 +332,15 @@ class RouteHelper {
 
   static final Handler _orderWebPaymentHandler = Handler(
       handlerFunc: (context, Map<String, dynamic> params) {
-        return _routeHandler(child: WebPaymentScreen(token: params['token'][0],));
+        String? token;
+        try {
+          token = params['token']?[0];
+        } catch (e) {
+          if (kDebugMode) {
+            print("Token parameter not found in web payment route");
+          }
+        }
+        return _routeHandler(child: WebPaymentScreen(token: token));
       }
   );
 
@@ -346,9 +372,45 @@ class RouteHelper {
 
   static final Handler _trackOrderHandler = Handler(handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
     TrackOrderScreen? trackOrderScreen = ModalRoute.of(context!)!.settings.arguments as TrackOrderScreen?;
+
+    String? orderId;
+    String? token;
+    String? transactionRef;
+
+    // Try to get transaction reference (new format: ?ref=...)
+    try {
+      transactionRef = params['ref']?[0];
+      if (transactionRef != null) {
+        transactionRef = Uri.decodeComponent(transactionRef);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print("Transaction reference not found in params");
+      }
+    }
+
+    // Try to get order ID from params (legacy format: /track-order/{id})
+    try {
+      orderId = params['id']?[0];
+    } catch (e) {
+      if (kDebugMode) {
+        print("Order ID not found in params");
+      }
+    }
+
+    // Try to get token from params (legacy format: ?token=...)
+    try {
+      token = params['token']?[0];
+    } catch (e) {
+      if (kDebugMode) {
+        print("Token not found in params");
+      }
+    }
+
     return _routeHandler(child: trackOrderScreen ?? TrackOrderScreen(
-      orderID: params['id'][0],
-      phone: Uri.decodeComponent(params['phone'][0]),
+      orderID: orderId,
+      phone: token,
+      transactionReference: transactionRef,
     ));
   });
 
@@ -366,6 +428,13 @@ class RouteHelper {
   });
 
   static final Handler _categoryProductsHandlerNew = Handler(handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
+    // Use web-specific screen for web platform
+    if (kIsWeb) {
+      return _routeHandler(child: WebCategoryProductsScreen(
+        categoryId: params['category_id'][0],
+        subCategoryName: params['subcategory'][0],
+      ));
+    }
     return _routeHandler(child: CategoryProductScreen(
       categoryId: params['category_id'][0],
       subCategoryName: params['subcategory'][0],
@@ -375,7 +444,10 @@ class RouteHelper {
 
   static final Handler _productDetailsHandler = Handler(handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
     bool? fromSearch = jsonDecode(params['search'][0]);
-    //jsonDecode(params['search']);
+    // Use web-specific screen for web platform
+    if (kIsWeb) {
+      return _routeHandler(child: WebProductDetailsScreen(productId: params['product_id'][0], fromSearch: fromSearch));
+    }
     return _routeHandler(child: ProductDetailsScreen(productId: params['product_id'][0], fromSearch: fromSearch));
   });
 
@@ -404,8 +476,17 @@ class RouteHelper {
     String data = utf8.decode(decode);
     return _routeHandler(child: SearchResultScreen(searchString: data));
   });
-  static final Handler _cartHandler = Handler(handlerFunc: (BuildContext? context, Map<String, dynamic> params) => _routeHandler(child: const CartScreen()));
+  static final Handler _cartHandler = Handler(handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
+    if (kIsWeb) {
+      return _routeHandler(child: const WebCartScreen());
+    }
+    return _routeHandler(child: const CartScreen());
+  });
   static final Handler _categoriesHandler = Handler(handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
+    // Use web-specific screen for web platform
+    if (kIsWeb) {
+      return _routeHandler(child: const WebAllCategoriesScreen());
+    }
     return _routeHandler(child: const AllCategoriesScreen());
   } );
   static final Handler _profileMenusHandler = Handler(handlerFunc: (BuildContext? context, Map<String, dynamic> params) => _routeHandler(child: const MenuWidget()));
@@ -431,6 +512,10 @@ class RouteHelper {
   static final Handler _faqHandler = Handler(handlerFunc: (context, Map<String, dynamic> params) => _routeHandler(child: const HtmlViewerScreen(htmlType: HtmlType.faq)));
 
   static final Handler _homeItemHandler = Handler(handlerFunc: (context, Map<String, dynamic> params) {
+    // Use web-specific screen for web platform
+    if (kIsWeb) {
+      return _routeHandler(child: WebHomeItemScreen(productType: params['item'][0]));
+    }
     return _routeHandler(child: HomeItemScreen(productType: params['item'][0]));
   });
   static final Handler _maintenanceHandler = Handler(handlerFunc: (context, Map<String, dynamic> params) => _routeHandler(child: const MaintenanceScreen()));
@@ -519,6 +604,7 @@ class RouteHelper {
     router.define(checkout, handler: _checkoutHandler, transitionType: TransitionType.fadeIn);
     router.define(notification, handler: _notificationHandler, transitionType: TransitionType.fadeIn);
     router.define(trackOrder, handler: _trackOrderHandler, transitionType: TransitionType.fadeIn);
+    router.define('$trackOrder/:id', handler: _trackOrderHandler, transitionType: TransitionType.fadeIn);
     router.define(trackMapScreen, handler: _trackMapScreenHandler, transitionType: TransitionType.fadeIn);
     router.define(categoryProducts, handler: _categoryProductsHandlerNew, transitionType: TransitionType.fadeIn);
     router.define(productDetails, handler: _productDetailsHandler, transitionType: TransitionType.fadeIn);

@@ -11,7 +11,9 @@ import 'package:flutter_grocery/common/widgets/custom_app_bar_widget.dart';
 import 'package:flutter_grocery/common/widgets/custom_loader_widget.dart';
 import 'package:flutter_grocery/common/widgets/footer_web_widget.dart';
 import 'package:flutter_grocery/common/widgets/no_data_widget.dart';
-import 'package:flutter_grocery/common/widgets/web_app_bar_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_header_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_category_drawer.dart';
+import 'package:flutter_grocery/common/widgets/web/web_sidebar_menu.dart';
 import 'package:provider/provider.dart';
 
 class NotificationScreen extends StatefulWidget {
@@ -50,10 +52,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         }
       },
       child: Scaffold(
-        appBar: (ResponsiveHelper.isDesktop(context) ? const PreferredSize(
-          preferredSize: Size.fromHeight(120),
-          child: WebAppBarWidget(),
-        ) : CustomAppBarWidget(title: getTranslated('notification', context),
+        appBar: (ResponsiveHelper.isDesktop(context) ? const WebHeaderWidget() : CustomAppBarWidget(title: getTranslated('notification', context),
           onBackPressed: (){
             if(!Navigator.canPop(context)){
               Navigator.of(context).pushNamedAndRemoveUntil(RouteHelper.menu, (route) => false);
@@ -63,6 +62,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
             }
           },
         )) as PreferredSizeWidget?,
+        drawer: ResponsiveHelper.isDesktop(context) ? const WebCategoryDrawer() : null,
+        endDrawer: ResponsiveHelper.isDesktop(context) ? const WebSidebarMenu() : null,
         body: RefreshIndicator(
           onRefresh: () async {
             await Provider.of<NotificationProvider>(context, listen: false).getNotificationList();

@@ -8,7 +8,9 @@ import 'package:flutter_grocery/utill/dimensions.dart';
 import 'package:flutter_grocery/utill/images.dart';
 import 'package:flutter_grocery/utill/styles.dart';
 import 'package:flutter_grocery/common/widgets/custom_text_field_widget.dart';
-import 'package:flutter_grocery/common/widgets/web_app_bar_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_header_widget.dart';
+import 'package:flutter_grocery/common/widgets/web/web_category_drawer.dart';
+import 'package:flutter_grocery/common/widgets/web/web_sidebar_menu.dart';
 import 'package:flutter_grocery/features/search/screens/search_result_screen.dart';
 import 'package:provider/provider.dart';
 
@@ -36,7 +38,9 @@ class _SearchScreenState extends State<SearchScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).canvasColor,
-      appBar: ResponsiveHelper.isDesktop(context)? const PreferredSize(preferredSize: Size.fromHeight(120), child: WebAppBarWidget()) :null,
+      appBar: ResponsiveHelper.isDesktop(context)? const WebHeaderWidget() :null,
+      drawer: ResponsiveHelper.isDesktop(context) ? const WebCategoryDrawer() : null,
+      endDrawer: ResponsiveHelper.isDesktop(context) ? const WebSidebarMenu() : null,
       body: SafeArea(
         child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeLarge),

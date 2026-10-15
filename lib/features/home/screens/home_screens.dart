@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_grocery/common/enums/data_source_enum.dart';
 import 'package:flutter_grocery/common/enums/footer_type_enum.dart';
@@ -11,6 +12,7 @@ import 'package:flutter_grocery/features/auth/providers/auth_provider.dart';
 import 'package:flutter_grocery/features/category/providers/category_provider.dart';
 import 'package:flutter_grocery/features/home/providers/banner_provider.dart';
 import 'package:flutter_grocery/features/home/providers/flash_deal_provider.dart';
+import 'package:flutter_grocery/features/home/screens/web/web_home_screen.dart';
 import 'package:flutter_grocery/features/home/widgets/all_product_list_widget.dart';
 import 'package:flutter_grocery/features/home/widgets/banners_widget.dart';
 import 'package:flutter_grocery/features/home/widgets/category_web_widget.dart';
@@ -94,7 +96,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
   @override
   Widget build(BuildContext context) {
+    // Route to web-specific homepage on web platform
+    if (kIsWeb) {
+      return const WebHomeScreen();
+    }
 
+    // Mobile homepage (unchanged)
     return RefreshIndicator(
       onRefresh: () async {
         await HomeScreen.loadData(true, context);
